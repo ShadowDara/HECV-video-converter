@@ -27,11 +27,11 @@ jobs:
       run: |
         mkdir -p build
         if [[ "$RUNNER_OS" == "Linux" ]]; then
-          dart compile exe bin/main.dart -o build/my_dart_cli-linux
+          dart compile exe bin/cli.dart -o build/my_dart_cli-linux
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          dart compile exe bin/main.dart -o build/my_dart_cli-macos
+          dart compile exe bin/cli.dart -o build/my_dart_cli-macos
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          dart compile exe bin/main.dart -o build/my_dart_cli.exe
+          dart compile exe bin/cli.dart -o build/my_dart_cli.exe
         fi
 
     - name: Upload artifact for later release step
