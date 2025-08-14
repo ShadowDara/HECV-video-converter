@@ -1,6 +1,6 @@
 name: cli
 description: A sample command-line application.
-version: 1.0.0
+version: 0.0.0
 # repository: https://github.com/my_org/my_repo
 
 environment:
@@ -8,8 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  # path: ^1.8.0
+  file_picker_desktop: ^1.1.1
 
 dev_dependencies:
-  lints: ^5.0.0
-  test: ^1.24.0
+  lints: ^2.1.1
+  test: ^1.24.6
