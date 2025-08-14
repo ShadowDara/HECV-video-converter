@@ -1,74 +1,60 @@
-# Build Workflow by @TheLastGimbus
-# https://github.com/TheLastGimbus
-# from
-# https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper
-# licensed under Appache 2.0 for TheLastGimbus 2025
-#
-# File edited by Shadowdara
+name: Dart Release Build
 
-name: Build and publish new release on version tag
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v*'  # z.B. v1.0.0
 
 jobs:
   build:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-    runs-on: ${{ matrix.os }}
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Get clean tag name
-        id: clean_tag
-        run: echo "tag=$(echo ${{ github.ref }} | sed 's/refs\/tags\///')" >> $GITHUB_OUTPUT
-      - name: Get exe name
-        id: exe_name
-        shell: bash
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            echo "name=gpth-linux" >> $GITHUB_OUTPUT
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            echo "name=gpth-windoza.exe" >> $GITHUB_OUTPUT
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            echo "name=gpth-macos" >> $GITHUB_OUTPUT
-          else
-            echo "Unknown OS: $RUNNER_OS"
-            exit 69
-          fi
-      - uses: dart-lang/setup-dart@v1
-      - run: dart pub get
-      - name: Build exe
-        run: dart compile exe bin/gpth.dart -o ./${{ steps.exe_name.outputs.name }}
-      - name: Code sign a windoza exe file
-        if: matrix.os == 'windows-latest'
-        uses: dlemstra/code-sign-action@v1
-        with:
-          # Note: this is a self-signed certificate that i generated on my computer
-          # This is worthless i think, since windoza still get angry, but best i can do,
-          # because proper certificates cost money (a lot :/ )
-          certificate: ${{ secrets.WINDOZA_CERT_BASE64 }}
-          password: ${{ secrets.WINDOZA_CERT_PASSWORD }}
-          folder: '.'
-      - name: Add files to GH-Release
-        uses: softprops/action-gh-release@v1
-        with:
-          # this supports globs :>
-          files: ./gpth-*
-          fail_on_unmatched_files: true
-      # if linux, upload to aur
-      - name: Generate PKGBUILD
-        if: matrix.os == 'ubuntu-latest'
-        run: ./scripts/gen-pkgbuild.bash ./${{ steps.exe_name.outputs.name }}
-      - name: Upload to AUR
-        if: matrix.os == 'ubuntu-latest'
-        uses: KSXGitHub/github-actions-deploy-aur@v2
-        with:
-          pkgname: gpth-bin
-          pkgbuild: ./PKGBUILD
-          commit_username: 'TheLastGimbus'
-          commit_email: 'mateusz.soszynski@tuta.io'
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: ${{ steps.clean_tag.outputs.tag }}
-          test: true
+    - uses: actions/checkout@v3
+
+    - name: Install Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        sdk: stable
+
+    - name: Get dependencies
+      run: dart pub get
+
+    - name: Build binary
+      run: |
+        mkdir -p build
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          dart compile exe bin/main.dart -o build/my_dart_cli-linux
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          dart compile exe bin/main.dart -o build/my_dart_cli-macos
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          dart compile exe bin/main.dart -o build/my_dart_cli.exe
+        fi
+
+    - name: Upload artifact for later release step
+      uses: actions/upload-artifact@v4
+      with:
+        name: my_dart_cli-${{ runner.os }}
+        path: build/*
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: build/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/**/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
