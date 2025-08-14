@@ -1,2 +1,2 @@
-# video-converter
+# HECV Video Converter
 
