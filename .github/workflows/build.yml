@@ -33,6 +33,7 @@ jobs:
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
           dart compile exe bin/cli.dart -o build/my_dart_cli.exe
         fi
+      shell: bash
 
     - name: Upload artifact for later release step
       uses: actions/upload-artifact@v4
