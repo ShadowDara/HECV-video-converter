@@ -7,7 +7,7 @@ void main(List<String> arguments) async {
 
   print("\nSelect your videos!");
 
-  print("\nBUT THIS WILL VERY CPU HUNGRY!");
+  print("\nBUT THIS WILL BE VERY CPU HUNGRY!");
 
   print("\n[ENTER]");
   stdin.readLineSync();
@@ -32,8 +32,8 @@ void main(List<String> arguments) async {
     // Prozess ausführen
     final result = await Process.run(cmd.first, cmd.sublist(1));
     print('Exit code: ${result.exitCode}');
-    print('stdout: ${result.stdout}');
-    print('stderr: ${result.stderr}');
+    //print('stdout: ${result.stdout}');
+    //print('stderr: ${result.stderr}');
   }
 
   print("Finished Converting!");
